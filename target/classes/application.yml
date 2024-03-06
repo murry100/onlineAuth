@@ -1,0 +1,45 @@
+server:
+  port: 8081
+
+spring:
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://182.92.116.125:3306/study-demo?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+
+    #Spring Boot ???????????????????
+    #druid ???????
+    initialSize: 5
+    minIdle: 5
+    maxActive: 20
+    maxWait: 60000
+    timeBetweenEvictionRunsMillis: 60000
+    minEvictableIdleTimeMillis: 300000
+    validationQuery: SELECT 1 FROM DUAL
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    poolPreparedStatements: true
+
+  # redis??
+  data:
+    redis:
+      host: 182.92.116.125
+      port: 6379
+
+
+# ??????
+logging:
+  level:
+    root: info
+
+
+#jwt ?????
+Jwt:
+  #jwt????
+  secretKey: sdsdsd23232323
+
