@@ -24,7 +24,7 @@ public class LogServiceImpl implements LogService {
     @Autowired
     private RedisUtil redisUtil;
 
-    @Resource
+    @Autowired
     private AuthenticationManager authenticationManager;
 
 

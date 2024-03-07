@@ -7,27 +7,41 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.Filter;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 //@EnableWebSecurity //因为我引入了spring-boot-starter-security，所以不用@EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true) //开启权限注解,默认是关闭的
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig{
+    private static final String[] AUTH_WHITELIST = {
+            "/sysUser/login",
+            "/sysUser/test",
+            "/test/**",
+            "/**.html",
+            "/js/**",
+            "/css/**",
+            "/img/**"
+    };
 
 
     //将authenticationManager注入容器中，再自定义登录接口中获取进行认证
     @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration autheConfiguration) throws Exception {
+        return autheConfiguration.getAuthenticationManager();
     }
 
     @Autowired
@@ -50,37 +64,33 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     //配置放行的规则
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable() // 关闭csrf验证(防止跨站请求伪造攻击)由于我们的资源都会收到SpringSecurity的保护，所以想要跨域访问还要让SpringSecurity运行跨域访问
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+         http.csrf(AbstractHttpConfigurer::disable)// 关闭csrf验证(防止跨站请求伪造攻击)由于我们的资源都会收到SpringSecurity的保护，所以想要跨域访问还要让SpringSecurity运行跨域访问
                 // 不通过session 获取SecurityContext(基于Token不需要session)
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 //开启权限拦截
-                .authorizeRequests()
-                // 允许登录接口匿名访问
-                .antMatchers("/sysUser/login", "/sysUser/test","/test/**").anonymous()
-                .antMatchers("/**.html","/js/**","/css/**","/img/**").permitAll()//放行静态资源
-                // 其他请求都需要认证
-                .anyRequest().authenticated();
-
-        //将jwtAuthenticationTokenFilter过滤器注入到UsernamePasswordAuthenticationFilter过滤器之前
-        http.addFilterBefore(jwtAuthenticationFilter, Filter.class);
-
-        // 认证授权异常自定义处理
-        http.exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint)//自定义认证失败异常处理类
-                .accessDeniedHandler(accessDeniedHandler);//自定义授权失败异常处理类
-
+                .authorizeHttpRequests( auth -> auth
+                        .requestMatchers(AUTH_WHITELIST).permitAll()
+                        .anyRequest().authenticated()
+                )
+                // 认证授权异常自定义处理
+                .exceptionHandling(m -> {
+                    m.authenticationEntryPoint(authenticationEntryPoint);//自定义认证失败异常处理类
+                    m.accessDeniedHandler(accessDeniedHandler);//自定义授权失败异常处理类
+                })
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .httpBasic(withDefaults())
+                ;
 
         // 禁用缓存
-        http.headers().cacheControl();
+//        http.headers().cacheControl();
 
         // 跨域请求配置
-        http.cors();
+        http.cors(AbstractHttpConfigurer::disable);
+
+        return http.build();
     }
-
-
 
 }
 
