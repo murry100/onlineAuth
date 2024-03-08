@@ -40,6 +40,10 @@ public class SysUser implements Serializable {
     //账号是否锁定。默认为1（没有锁定）
     private Boolean accountNotLocked;
 
+    private Date allowAt;
+
+    private Integer errorNum;
+
     //证书（密码）是否过期。默认为1（没有过期）
     private Boolean credentialsNotExpired;
 

@@ -3,6 +3,8 @@ package jp.co.dir.falcon.online.auth.security.filter;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.annotation.Resource;
+import jp.co.dir.falcon.online.auth.common.api.ApiCode;
+import jp.co.dir.falcon.online.auth.common.api.ApiResult;
 import jp.co.dir.falcon.online.auth.common.utils.JwtUtils;
 import jp.co.dir.falcon.online.auth.security.entity.LogUser;
 import jp.co.dir.falcon.online.auth.web.entity.SysPermission;
@@ -21,7 +23,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -44,8 +48,33 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         SysUser user = userMapper.selectOne(new QueryWrapper<SysUser>().eq("account", name));
 
-        if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadCredentialsException("Invalid username or password");
+        if (user == null) {
+            throw new BadCredentialsException("Invalid username");
+        }
+
+        SysUser sysUser = new SysUser();
+        sysUser.setUserId(user.getUserId());
+        if (user.getAccountNotLocked().equals(false)){
+            if(user.getAllowAt().compareTo(new Date()) > 0){
+                throw new BadCredentialsException("Account lock:" + user.getAllowAt());
+            }else {
+                sysUser.setAccountNotLocked(true);
+                userMapper.updateById(sysUser);
+            }
+        }
+
+        if (!passwordEncoder.matches(password, user.getPassword())){
+            int currNum = user.getErrorNum();
+            if(currNum == 2){
+                long time = 1*60*1000;
+                sysUser.setAccountNotLocked(false);
+                sysUser.setErrorNum(0);
+                sysUser.setAllowAt(new Date(new Date() .getTime() + time));
+            }else {
+                sysUser.setErrorNum(currNum+1);
+            }
+            userMapper.updateById(sysUser);
+            throw new BadCredentialsException("Invalid password" + ++currNum);
         }
 
         List<String> permissionsList = new ArrayList<>();

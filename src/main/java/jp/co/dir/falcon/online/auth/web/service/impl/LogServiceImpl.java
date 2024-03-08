@@ -72,7 +72,6 @@ public class LogServiceImpl implements LogService {
         return ApiResult.success("退出成功!");
 
     }
-
 }
 
 

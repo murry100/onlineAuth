@@ -1,0 +1,101 @@
+CREATE TABLE sys_user (
+                          user_id SERIAL PRIMARY KEY,
+                          account VARCHAR(32) NULL,
+                          user_name VARCHAR(32) NULL,
+                          password VARCHAR(64) NULL,
+                          last_login_time TIMESTAMP NULL,
+                          enabled SMALLINT DEFAULT 1,
+                          account_not_expired SMALLINT DEFAULT 1,
+                          account_not_locked BOOLEAN,
+                          allow_at TIMESTAMP NULL,
+                          error_num INT,
+                          credentials_not_expired SMALLINT DEFAULT 1,
+                          create_time TIMESTAMP NULL,
+                          update_time TIMESTAMP NULL
+);
+
+-- 为列添加注释
+COMMENT ON COLUMN sys_user.user_id IS '账号ID';
+COMMENT ON COLUMN sys_user.account IS '账号';
+COMMENT ON COLUMN sys_user.user_name IS '用户名';
+COMMENT ON COLUMN sys_user.password IS '用户密码';
+COMMENT ON COLUMN sys_user.last_login_time IS '上一次登录时间';
+COMMENT ON COLUMN sys_user.enabled IS '账号是否可用。默认为1（可用）';
+COMMENT ON COLUMN sys_user.account_not_expired IS '是否过期。默认为1（没有过期）';
+COMMENT ON COLUMN sys_user.account_not_locked IS '账号是否锁定。默认为1（没有锁定）';
+COMMENT ON COLUMN sys_user.credentials_not_expired IS '证书（密码）是否过期。默认为1（没有过期）';
+COMMENT ON COLUMN sys_user.create_time IS '创建时间';
+COMMENT ON COLUMN sys_user.update_time IS '更新时间';
+
+
+CREATE TABLE sys_permission (
+                                permission_id SERIAL PRIMARY KEY,
+                                permission_code VARCHAR(32) NULL,
+                                permission_name VARCHAR(32) NULL,
+                                url VARCHAR(255) NULL
+);
+
+
+CREATE TABLE sys_user_permission_relation (
+    user_permission_relation_id SERIAL PRIMARY KEY,
+    user_id INT,
+    permission_id INT
+);
+
+-- 插入数据到 sys_user 表
+INSERT INTO sys_user (
+    user_id,
+    account,
+    user_name,
+    password,
+    last_login_time,
+    enabled,
+    account_not_expired,
+    account_not_locked,
+    allow_at,
+    error_num,
+    credentials_not_expired,
+    create_time,
+    update_time
+) VALUES (
+             1,
+             '888',
+             '小张',
+             '$2a$10$2mO7/KcswzO3SQU7TX3fiOfkypjdOn3tLBezV/tf2IJXdQu1BpxK2',
+             '2024-03-16 09:45:53',
+             1,
+             1,
+             true,
+             null,
+             0,
+             1,
+             '2024-03-09 17:49:20',
+             '2024-03-09 17:49:22'
+         );
+
+-- 插入数据到 sys_permission 表
+INSERT INTO sys_permission (
+    permission_id,
+    permission_code,
+    permission_name,
+    url
+) VALUES (
+             1,
+             'sys:queryUser',
+             '查询用户',
+             '/getUser'
+         );
+
+-- 插入数据到 sys_user_permission_relation 表
+INSERT INTO sys_user_permission_relation (
+    user_permission_relation_id,
+    user_id,
+    permission_id
+) VALUES (
+             1,
+             1,
+             1
+         );
+
+
+
