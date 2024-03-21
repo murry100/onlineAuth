@@ -4,9 +4,9 @@ public enum ApiCode {
 
     SUCCESS(200, "成功"),
 
-    SYSTEM_ERROR(500, "操作失败"),
+    SYSTEM_ERROR(500, "操作に失敗しました"),
 
-    NOT_FOUND(404,"未找到该资源");
+    NOT_FOUND(404, "リソースが見つかりませんでした");
 
     private final int code;
     private final String msg;

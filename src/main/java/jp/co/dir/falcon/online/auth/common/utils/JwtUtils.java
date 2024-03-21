@@ -16,17 +16,23 @@ import java.util.Map;
 public class JwtUtils {
     private static String secretKey;
 
-    private static Integer amount = 1800;//jwt的过期周期/秒 默认30分钟
+    private static Integer amount;
 
-    @Value("${Jwt.secretKey}")
+    @Value("${security.authentication.jwt.token-validity-in-seconds}")
+    public void amount(Integer amount) {
+        JwtUtils.amount = amount;
+    }
+
+    @Value("${security.authentication.jwt.base64-secret}")
     public void secretKey(String secretKey) {
-        JwtUtils.secretKey =  secretKey;
+        JwtUtils.secretKey = secretKey;
     }
 
 
     /**
-     * 创建token
-     * @param payloadMap 存储的内容，自定义，一般是用户id
+     * 作成token
+     *
+     * @param payloadMap 保存されたコンテンツ、カスタマイズされた、通常はユーザー ID
      * @return
      */
     public static String generateToken(Map<String, String> payloadMap) {
@@ -35,22 +41,22 @@ public class JwtUtils {
 
         JWTCreator.Builder builder = JWT.create();
 
-        //定义jwt过期时间
+        //jwtの有効期限を定義する
         Calendar instance = Calendar.getInstance();
         instance.add(Calendar.SECOND, amount);
 
 
         //payload
-        payloadMap.forEach((k, v) ->{
+        payloadMap.forEach((k, v) -> {
             builder.withClaim(k, v);
         });
 
 
         // 生成token
         String token = builder.withHeader(headers)//header
-                //.withClaim("second",amount)//jwt的过期周期/秒，可以用于jwt快过期的时候自动刷新
-                .withExpiresAt(instance.getTime())//指定令牌的过期时间
-                .sign(Algorithm.HMAC256(secretKey));//签名
+                .withClaim("second", amount)//jwt の有効期限/秒を使用すると、jwt の有効期限が近づいたときに自動的に更新できます。
+                .withExpiresAt(instance.getTime())//トークンの有効期限を指定する
+                .sign(Algorithm.HMAC256(secretKey));//サイン
 
 
         return token;
@@ -58,28 +64,29 @@ public class JwtUtils {
 
 
     /**
-     * 校验token是否合法
+     * トークンが合法かどうかを確認する
+     *
      * @param token
      * @return
      */
     public static DecodedJWT verifyToken(String token) {
 
         /*
-        如果有任何验证异常，此处都会抛出异常
-        SignatureVerificationException 签名不一致异常
-        TokenExpiredException 令牌过期异常
-        AlgorithmMismatchException 算法不匹配异常
-        InvalidClaimException 失效的payload异常
+        検証例外がある場合は、ここで例外がスローされます。
+        SignatureVerificationException 署名の不一致の例外
+        TokenExpiredException トークンの有効期限の例外
+        AlgorithmMismatchException アルゴリズム不一致例外
+        InvalidClaimException 無効なペイロードの例外
         */
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(secretKey)).build().verify(token);
-
 
 
         return decodedJWT;
     }
 
     /**
-     * 获取token信息
+     * トークン情報の取得
+     *
      * @param token
      * @return
      */
@@ -89,7 +96,7 @@ public class JwtUtils {
     }
 
     /**
-     * 获取token信息方法
+     * トークン情報の取得方法
      */
     /*public static Map<String, Claim> getTokenInfo(String token) {
 

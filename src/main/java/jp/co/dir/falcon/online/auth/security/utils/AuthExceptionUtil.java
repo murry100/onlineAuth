@@ -7,33 +7,33 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.csrf.CsrfException;
 
-//认证异常工具类
+//認証例外ツールクラス
 public class AuthExceptionUtil {
 
     public static ApiResult getErrMsgByExceptionType(AuthenticationException e) {
 
         if (e instanceof LockedException) {
 
-            return ApiResult.error(1100,"账户被锁定，请联系管理员!");
+            return ApiResult.error(1100, "アカウントがロックされています。管理者に連絡してください!");
 
         } else if (e instanceof CredentialsExpiredException) {
-            return ApiResult.error(1105,"用户名或者密码输入错误!");
+            return ApiResult.error(1105, "ユーザー名またはパスワードが間違って入力されました!");
 
-        }else if (e instanceof InsufficientAuthenticationException) {
-            return ApiResult.error(403,"请登录!");
+        } else if (e instanceof InsufficientAuthenticationException) {
+            return ApiResult.error(403, "サインインしてください!");
 
         } else if (e instanceof AccountExpiredException) {
-            return ApiResult.error(1101, "账户过期，请联系管理员!");
+            return ApiResult.error(1101, "アカウントの有効期限が切れています。管理者に連絡してください!");
 
         } else if (e instanceof DisabledException) {
-            return ApiResult.error(1102, ("账户被禁用，请联系管理员!"));
+            return ApiResult.error(1102, ("アカウントが無効になっています。管理者に連絡してください!"));
 
         } else if (e instanceof BadCredentialsException) {
-            return ApiResult.error(1105, "用户名或者密码输入错误!");
+            return ApiResult.error(1105, "ユーザー名またはパスワードが間違って入力されました!");
 
-        }else if (e instanceof AuthenticationServiceException) {
+        } else if (e instanceof AuthenticationServiceException) {
 
-            return ApiResult.error(1106, "认证失败，请重试!");
+            return ApiResult.error(1106, "認証に失敗しました。もう一度やり直してください!");
         }
 
         return ApiResult.error(1200, e.getMessage());
@@ -43,16 +43,16 @@ public class AuthExceptionUtil {
 
         if (e instanceof CsrfException) {
 
-            return ApiResult.error(-1001, "非法访问跨域请求异常!");
+            return ApiResult.error(-1001, "クロスドメインリクエスト例外への不正アクセス!");
         } else if (e instanceof CsrfException) {
 
-            return ApiResult.error(-1002,"非法访问跨域请求异常!");
+            return ApiResult.error(-1002, "クロスドメインリクエスト例外への不正アクセス!");
         } else if (e instanceof AuthorizationServiceException) {
 
-            return ApiResult.error(1101, "认证服务异常请重试!");
-        }else if (e instanceof AccessDeniedException) {
+            return ApiResult.error(1101, "認証サービス例外。もう一度お試しください。!");
+        } else if (e instanceof AccessDeniedException) {
 
-            return ApiResult.error(4003, "权限不足不允许访问!");
+            return ApiResult.error(4003, "権限が不十分なためアクセスが許可されません!");
         }
 
         return ApiResult.error(1200, e.getMessage());

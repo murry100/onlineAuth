@@ -1,7 +1,7 @@
 package jp.co.dir.falcon.online.auth.security.entity;
 
-import com.alibaba.fastjson.annotation.JSONField;
-import jp.co.dir.falcon.online.auth.web.entity.SysUser;
+import com.google.gson.annotations.Expose;
+import jp.co.dir.falcon.online.auth.web.entity.Users;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,27 +9,28 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class LogUser implements UserDetails {
+public class LogUser implements UserDetails, Serializable {
 
-    //用户信息
-    private SysUser user;
+    private static final long serialVersionUID = 1L;
+    //ユーザー情報
+    private Users user;
 
-    //用户权限
+    //ユーザーの権利
     private List<String> permissions;
 
-    //存储SpringSecurity所需要的权限信息的集合
-    @JSONField(serialize = false)
+    //SpringSecurityを保存するために必要な権限情報のコレクション
+    @Expose(serialize = false)
     private List<SimpleGrantedAuthority> authorities;
 
-    public LogUser(SysUser user,List<String> permissions){
+    public LogUser(Users user, List<String> permissions) {
 
         this.user = user;
         this.permissions = permissions;
@@ -39,11 +40,11 @@ public class LogUser implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 将权限信息封装成 SimpleGrantedAuthority
+        // 許可情報をカプセル化する SimpleGrantedAuthority
         if (authorities != null) {
             return authorities;
         }
-        //把permissions中字符串类型的权限信息转换成GrantedAuthority对象存入authorities中
+        //パーミッション内の文字列型パーミッション情報をGrantedAuthorityオブジェクトに変換し、オーソリティに格納する
         authorities = this.permissions.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
 
         return authorities;
@@ -57,27 +58,31 @@ public class LogUser implements UserDetails {
 
     @Override
     public String getUsername() {
-        return user.getUserName();
+        return user.getLoginId();
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return user.getAccountNotExpired();
+//        return user.getAccountNotExpired();
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return user.getAccountNotLocked();
+//        return user.getAccountNotLocked();
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return user.getCredentialsNotExpired();
+//        return user.getCredentialsNotExpired();
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return user.getEnabled();
+        return true;
+//        return user.getEnabled();
     }
 }
 

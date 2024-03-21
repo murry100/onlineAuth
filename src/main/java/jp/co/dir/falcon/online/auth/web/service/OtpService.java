@@ -1,6 +1,10 @@
 package jp.co.dir.falcon.online.auth.web.service;
 
+import jp.co.dir.falcon.online.auth.common.api.ApiResult;
+import org.springframework.web.server.ServerWebExchange;
+
 public interface OtpService {
     String generateOTP(String phoneNumber);
-    boolean validateOtp(String phoneNumber, String inputOtp);
+
+    ApiResult validateOtp(String phoneNumber, String inputOtp, ServerWebExchange exchange);
 }

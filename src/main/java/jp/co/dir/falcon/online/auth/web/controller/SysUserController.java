@@ -8,9 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ServerWebExchange;
 
 @RestController
-@RequestMapping("/sysUser")
+@RequestMapping("/auth")
 public class SysUserController {
 
     @Autowired
@@ -18,11 +19,12 @@ public class SysUserController {
 
 
     /**
-     * 自定义登录
-     * @param param 登录传参
+     * カスタムログイン
+     *
+     * @param param ログインしてパラメータを渡す
      * @return
      */
-    @PostMapping("/login")
+    @PostMapping("/ver1/login/authenticate")
     public ApiResult login(@RequestBody LoginUserParam param) {
 
         return logService.login(param);
@@ -31,18 +33,16 @@ public class SysUserController {
 
 
     /**
-     * 自定义登出
+     * カスタムログアウト
+     *
      * @return
      */
-    @PostMapping("/logOut")
-    public ApiResult logOut() {
+    @PostMapping("/ver1/logOut")
+    public ApiResult logOut(ServerWebExchange exchange) {
 
-        return logService.logOut();
+        return logService.logOut(exchange);
 
     }
-
-
-
 
 
 }

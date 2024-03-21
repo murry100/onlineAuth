@@ -5,14 +5,11 @@ spring:
   profiles:
     active: dev
   datasource:
-    url: jdbc:postgresql://localhost:5432/data_engine?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: postgres
     password: 123
     driver-class-name: org.postgresql.Driver
-    type: com.alibaba.druid.pool.DruidDataSource
 
-    #Spring Boot ???????????????????
-    #druid ???????
     initialSize: 5
     minIdle: 5
     maxActive: 20
@@ -25,21 +22,39 @@ spring:
     testOnReturn: false
     poolPreparedStatements: true
 
-  # redis??
   data:
     redis:
       host: localhost
       port: 6379
+      # Token is valid 20 minute
+      token-validity-in-seconds: 1200
+      # Otp is valid 1 minute
+      otp-validity-in-seconds: 60
 
 
-# ??????
+
+  main:
+    web-application-type: reactive
 logging:
   level:
     root: info
+    org:
+      springframework:
+        security: DEBUG
 
 
-#jwt ?????
 Jwt:
-  #jwt????
   secretKey: sdsdsd23232323
+  optSecret: optopt123123
+  tokenSecret: tokentoken123123
+
+security:
+  authentication:
+    jwt:
+      # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
+      base64-secret: MzZkOTQ4Y2Y4MDIyNjEyNjJiYjA1M2IwZjY4NGFmN2ZhY2IxNWNjMmY0NTFhYjBjNTY3YTQ1MTlmOTRhMTFlYTNiMjRmYTg2OTYxNGYwZTllMjI3ZDA2ZGYyNGNhNDIzMDQ1OTJjNWM2NmMwMWE5YTAzYjdiYjExYWRjYjdjMTE=
+      # Token is valid 20 minute
+      token-validity-in-seconds: 1200
+      token-validity-in-seconds-for-remember-me: 2592000
+
 

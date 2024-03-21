@@ -10,23 +10,23 @@ public class ApiResult<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    //状态码
+    //ステータスコード
     private int code;
 
-    //返回数据
+    //戻りデータ
     private T data;
 
-    //结果信息
+    //結果情報
     private String message;
 
-    //时间字符串
+    //時間文字列
     private String time;
 
     private ApiResult(){
 
     }
 
-    //定义成功的构造器
+    //成功コンストラクターを定義する
     private ApiResult(T data){
         this.code = ApiCode.SUCCESS.getCode();
         this.message = ApiCode.SUCCESS.getMsg();
@@ -55,7 +55,7 @@ public class ApiResult<T> implements Serializable {
     }
 
     /**
-     * 成功的时候调用
+     * 成功すると呼び出される
      * @param data
      * @return
      * @param <T>
@@ -65,7 +65,7 @@ public class ApiResult<T> implements Serializable {
     }
 
     /**
-     * 根据状态返回结果
+     * ステータスに基づいて結果を返す
      * @param apiCode
      * @return
      * @param <T>
@@ -75,7 +75,7 @@ public class ApiResult<T> implements Serializable {
     }
 
     /**
-     * 根据code和msg返回结果
+     * コードとメッセージに基づいて結果を返します
      * @param code
      * @param msg
      * @return
@@ -86,7 +86,7 @@ public class ApiResult<T> implements Serializable {
     }
 
     /**
-     * 根据状态和数据返回结果
+     * ステータスとデータに基づいて結果を返す
      * @param apiCode
      * @param data
      * @return
@@ -98,7 +98,7 @@ public class ApiResult<T> implements Serializable {
 
 
     /**
-     * 返回异常结果
+     * 異常な結果を返す
      * @param code
      * @param msg
      * @return

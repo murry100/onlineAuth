@@ -5,9 +5,9 @@ import lombok.Data;
 @Data
 public class LoginUserParam {
 
-    //用户名
+    //ユーザー名
     private String userName;
 
-    //用户密码
+    //ユーザーのパスワード
     private String password;
 }

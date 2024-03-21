@@ -5,10 +5,10 @@ import lombok.Data;
 
 
 /**
- * 自定义异常类
+ * カスタム例外クラス
  */
 @Data
-public class BusinessException extends RuntimeException{
+public class BusinessException extends RuntimeException {
 
     private int code;
 

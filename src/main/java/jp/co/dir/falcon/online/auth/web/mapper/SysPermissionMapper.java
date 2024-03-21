@@ -1,29 +1,30 @@
 package jp.co.dir.falcon.online.auth.web.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import jp.co.dir.falcon.online.auth.web.entity.SysPermission;
+import jp.co.dir.falcon.online.auth.web.entity.Roles;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
-public interface SysPermissionMapper extends BaseMapper<SysPermission> {
+public interface SysPermissionMapper extends BaseMapper<Roles> {
 
 
     /**
-     * 通过用户id查询用户的权限数据
+     * ユーザーIDによるユーザーの権限データのクエリ
+     *
      * @param userId
      * @return
      */
-    @Select({"<script>"+
-            " SELECT p.* FROM"+
-            " sys_user u"+
-            " LEFT JOIN sys_user_permission_relation r ON u.user_id = r.user_id"+
-            " LEFT JOIN sys_permission p on r.permission_id = p.permission_id"+
-            " WHERE u.user_id = #{userId}"+
+    @Select({"<script>" +
+            " SELECT p.* FROM" +
+            " users u" +
+            " LEFT JOIN user_roles r ON u.id = r.user_id" +
+            " LEFT JOIN roles p on r.role_id = p.id" +
+            " WHERE u.id = #{userId}" +
             "</script>"
 
     })
-    List<SysPermission> selectPermissionList(@Param("userId") Integer userId);
+    List<Roles> selectPermissionList(@Param("userId") Integer userId);
 }
 

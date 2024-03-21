@@ -1,29 +1,26 @@
 package jp.co.dir.falcon.online.auth.security.filter;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.annotation.Resource;
-import jp.co.dir.falcon.online.auth.common.api.ApiCode;
-import jp.co.dir.falcon.online.auth.common.api.ApiResult;
-import jp.co.dir.falcon.online.auth.common.utils.JwtUtils;
 import jp.co.dir.falcon.online.auth.security.entity.LogUser;
-import jp.co.dir.falcon.online.auth.web.entity.SysPermission;
-import jp.co.dir.falcon.online.auth.web.entity.SysUser;
+import jp.co.dir.falcon.online.auth.web.entity.Roles;
+import jp.co.dir.falcon.online.auth.web.entity.Users;
 import jp.co.dir.falcon.online.auth.web.mapper.SysPermissionMapper;
 import jp.co.dir.falcon.online.auth.web.mapper.SysUserMapper;
+import jp.co.dir.falcon.online.auth.web.service.OtpService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -40,57 +37,44 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private OtpService otpService;
+
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
 
-        SysUser user = userMapper.selectOne(new QueryWrapper<SysUser>().eq("account", name));
+        Users user = userMapper.selectOne(new QueryWrapper<Users>().eq("login_id", name));
 
         if (user == null) {
             throw new BadCredentialsException("Invalid username");
         }
 
-        SysUser sysUser = new SysUser();
-        sysUser.setUserId(user.getUserId());
-        if (user.getAccountNotLocked().equals(false)){
-            if(user.getAllowAt().compareTo(new Date()) > 0){
-                throw new BadCredentialsException("Account lock:" + user.getAllowAt());
-            }else {
-                sysUser.setAccountNotLocked(true);
-                userMapper.updateById(sysUser);
-            }
-        }
+        Boolean verify = passwordEncoder.matches(password, user.getPassword());
 
-        if (!passwordEncoder.matches(password, user.getPassword())){
-            int currNum = user.getErrorNum();
-            if(currNum == 2){
-                long time = 1*60*1000;
-                sysUser.setAccountNotLocked(false);
-                sysUser.setErrorNum(0);
-                sysUser.setAllowAt(new Date(new Date() .getTime() + time));
-            }else {
-                sysUser.setErrorNum(currNum+1);
-            }
-            userMapper.updateById(sysUser);
-            throw new BadCredentialsException("Invalid password" + ++currNum);
-        }
+        updateLoginInfo(user, verify);
+        // ログインアンロック時間を更新
+        checkPasswordErrCount(user, verify);
+
+        String otp = otpService.generateOTP(user.getPhoneNumber());
+        System.out.println(otp);
 
         List<String> permissionsList = new ArrayList<>();
-        //获取该用户所拥有的权限
-        List<SysPermission> sysPermissions = sysPermissionMapper.selectPermissionList(user.getUserId());
+        //このユーザーが所有する権限を取得します
+        List<Roles> sysPermissions = sysPermissionMapper.selectPermissionList(user.getUserId());
 
-        // 声明用户授权
+        // ユーザー権限の宣言
         sysPermissions.forEach(sysPermission -> {
-            permissionsList.add(sysPermission.getPermissionCode());
+            permissionsList.add(sysPermission.getName());
 
         });
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(sysPermissions.toString()));
 
-        //返回用户信息
-        return new UsernamePasswordAuthenticationToken(new LogUser(user,permissionsList), password, authorities);
+        //ユーザー情報を返す
+        return new UsernamePasswordAuthenticationToken(new LogUser(user, permissionsList), password, authorities);
     }
 
     @Override
@@ -98,4 +82,51 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
     }
 
+    private void checkPasswordErrCount(Users user, Boolean verify) {
+        if (user.getUserStatus().equals("01")) {
+            if (user.getLoginUnlockDatetime().compareTo(new Date()) > 0) {
+                throw new LockedException("Account lock:" + user.getLoginUnlockDatetime());
+            } else {
+                user.setUserStatus("00");
+                user.setLoginErrCnt(0);
+            }
+        }
+
+        if (!verify) {
+            int currNum = user.getLoginErrCnt();
+            if (currNum == 2) {
+                long time = 1 * 60 * 1000;
+                user.setUserStatus("01");
+                user.setLoginErrCnt(0);
+                user.setLoginUnlockDatetime(new Date(new Date().getTime() + time));
+            } else {
+                user.setLoginErrCnt(currNum + 1);
+            }
+            userMapper.updateById(user);
+            throw new BadCredentialsException("Invalid password" + ++currNum);
+        }else {
+            user.setLoginErrCnt(0);
+        }
+        userMapper.updateById(user);
+    }
+
+    private void updateLoginInfo(Users user, Boolean verify){
+        // 累積ﾛｸﾞｲﾝ回数
+        user.setLoginCnt(converNullToZero(user.getLoginCnt()) + 1);
+        if(verify){
+            Date date = new Date();
+            // ﾛｸﾞｲﾝOK回数
+            user.setLoginOkCnt(converNullToZero(user.getLoginOkCnt()) + 1);
+            // 初回ﾛｸﾞｲﾝ日
+            if(user.getLoginFirstYmd() == null){
+                user.setLoginFirstYmd(date);
+            }
+            // 最新ログイン日時
+            user.setLoginDatetimeLast(new Timestamp(date.getTime()));
+        }
+    }
+
+    public static int converNullToZero(Integer value){
+        return value != null ? value : 0;
+    }
 }

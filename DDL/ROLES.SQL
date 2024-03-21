@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS ROLES CASCADE;
+
+CREATE TABLE ROLES (
+    ID INTEGER PRIMARY KEY,
+    NAME VARCHAR(255) UNIQUE NOT NULL
+);
+
+
+INSERT INTO ROLES (
+    ID,
+    NAME
+) VALUES (
+             1,
+             'admin'
+         );

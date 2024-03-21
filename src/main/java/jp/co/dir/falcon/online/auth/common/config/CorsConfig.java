@@ -7,29 +7,30 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
-//跨越请求配置类
+//クロスリクエスト構成クラス
 @Configuration
 public class CorsConfig {
 
     private CorsConfiguration buildConfig() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        //  你需要跨域的地址  注意这里的 127.0.0.1 != localhost
-        // * 表示对所有的地址都可以访问
+        //  クロスドメイン アドレスが必要なので、ここに注意してください。 127.0.0.1 != localhost
+        // * すべてのアドレスにアクセスできることを示します
         corsConfiguration.addAllowedOrigin("*");  // 1
-        //  跨域的请求头
+        //  クロスドメインリクエストヘッダー
         corsConfiguration.addAllowedHeader("*"); // 2
-        //  跨域的请求方法
+        //  クロスドメインリクエスト方式
         corsConfiguration.addAllowedMethod("*"); // 3
-        //加上了这一句，大致意思是可以携带 cookie
-        //最终的结果是可以 在跨域请求的时候获取同一个 session
+        //この文を大まかに追加すると、持ち運びできるという意味になります cookie
+        //最終的な結果は、クロスドメインリクエスト中に同じものを取得できることです。 session
         corsConfiguration.setAllowCredentials(true);
         return corsConfiguration;
     }
+
     @Bean
     public CorsFilter corsFilter() {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        //配置 可以访问的地址
+        //アクセス可能なアドレスを構成する
         source.registerCorsConfiguration("/**", buildConfig());
         return new CorsFilter(source);
     }

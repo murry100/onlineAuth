@@ -1,6 +1,5 @@
 package jp.co.dir.falcon.online.auth.web.service.impl;
 
-import jakarta.annotation.Resource;
 import jp.co.dir.falcon.online.auth.common.api.ApiResult;
 import jp.co.dir.falcon.online.auth.common.utils.JwtUtils;
 import jp.co.dir.falcon.online.auth.common.utils.RedisUtil;
@@ -8,15 +7,16 @@ import jp.co.dir.falcon.online.auth.security.entity.LogUser;
 import jp.co.dir.falcon.online.auth.web.param.LoginUserParam;
 import jp.co.dir.falcon.online.auth.web.service.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ServerWebExchange;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class LogServiceImpl implements LogService {
@@ -27,49 +27,57 @@ public class LogServiceImpl implements LogService {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    private static Long tokenAmount;
+
+    @Value("${spring.data.redis.token-validity-in-seconds}")
+    public void tokenAmount(Long tokenAmount) {
+        LogServiceImpl.tokenAmount = tokenAmount;
+    }
 
     @Override
     public ApiResult login(LoginUserParam param) {
 
-        // 1 获取AuthenticationManager 对象 然后调用 authenticate() 方法
-        // UsernamePasswordAuthenticationToken 实现了Authentication 接口
+        // 1 AuthenticationManager オブジェクトを取得し、authenticate() メソッドを呼び出します。
+        // UsernamePasswordAuthenticationToken は認証インターフェイスを実装します。
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(param.getUserName(), param.getPassword());
         Authentication authenticate = authenticationManager.authenticate(authenticationToken);
 
-        //2 认证没通过 提示认证失败
+        //2 認証に失敗しました 認証に失敗しました。
         if (Objects.isNull(authenticate)) {
-            throw new RuntimeException("认证失败用户信息不存在");
+            throw new RuntimeException("認証に失敗しました。ユーザー情報が存在しません。");
         }
 
 
-        //认证通过 使用userid 生成jwt token令牌
+        //認証に合格しました。ユーザー ID を使用して jwt トークンを生成します。
         LogUser loginUser = (LogUser) authenticate.getPrincipal();
         String userId = loginUser.getUser().getUserId().toString();
 
         Map<String, String> payloadMap = new HashMap<>();
-        payloadMap.put("userId", userId);
-        payloadMap.put("userName", loginUser.getUser().getUserName());
-        payloadMap.put("token", JwtUtils.generateToken(payloadMap));
+        payloadMap.put("user_id", userId);
+        String jwt = JwtUtils.generateToken(payloadMap);
+        payloadMap.clear();
 
-        boolean resultRedis = redisUtil.set("login:" + userId, loginUser);
+        payloadMap.put("id_token", jwt);
 
-        if(!resultRedis){
-            throw new RuntimeException("redis连接不上，登录失败");
-        }
-
+        //roleKey -> url
+        Map<String, Set> roleMap = new HashMap<>();
+        Set<String> adminSet = new HashSet<>();
+        adminSet.add("/auth/ver1/login/authenticate");
+        adminSet.add("/auth/ver1/logOut");
+        adminSet.add("/auth/ver1/login/mfa");
+        adminSet.add("/testPreAuthorize/hello");
+        roleMap.put("admin", adminSet);
+        redisUtil.set("Authorization", roleMap);
 
         return ApiResult.success(payloadMap);
     }
 
     @Override
-    public ApiResult logOut() {
-        // 1 获取 SecurityContextHolder 中的用户id
-        UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-        LogUser loginUser = (LogUser)authentication.getPrincipal();
-        //2 删除redis 中的缓存信
-        String key = "login:"+loginUser.getUser().getUserId().toString();
-        redisUtil.del(key);
-        return ApiResult.success("退出成功!");
+    public ApiResult logOut(ServerWebExchange exchange) {
+        String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String token = authorization.substring(7);
+        redisUtil.del(token);
+        return ApiResult.success("正常に終了します!");
 
     }
 }
