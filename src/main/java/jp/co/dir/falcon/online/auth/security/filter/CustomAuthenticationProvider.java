@@ -3,12 +3,15 @@ package jp.co.dir.falcon.online.auth.security.filter;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import jp.co.dir.falcon.online.auth.security.entity.LogUser;
+import jp.co.dir.falcon.online.auth.web.entity.RolePermissions;
 import jp.co.dir.falcon.online.auth.web.entity.Roles;
 import jp.co.dir.falcon.online.auth.web.entity.Users;
 import jp.co.dir.falcon.online.auth.web.mapper.SysPermissionMapper;
 import jp.co.dir.falcon.online.auth.web.mapper.SysUserMapper;
 import jp.co.dir.falcon.online.auth.web.service.OtpService;
+import jp.co.dir.falcon.online.auth.web.service.impl.OtpServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.LockedException;
@@ -27,6 +30,13 @@ import java.util.List;
 
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
+
+    private static Long accountLockMillis;
+
+    @Value("${spring.datasource.accountLockMillis}")
+    public void accountLockMillis(Long accountLockMillis) {
+        CustomAuthenticationProvider.accountLockMillis = accountLockMillis;
+    }
 
     @Resource
     private SysPermissionMapper sysPermissionMapper;
@@ -63,12 +73,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         List<String> permissionsList = new ArrayList<>();
         //このユーザーが所有する権限を取得します
-        List<Roles> sysPermissions = sysPermissionMapper.selectPermissionList(user.getUserId());
+        List<RolePermissions> sysPermissions = sysPermissionMapper.selectPermissionList(user.getUserId());
 
         // ユーザー権限の宣言
         sysPermissions.forEach(sysPermission -> {
-            permissionsList.add(sysPermission.getName());
-
+            permissionsList.add(sysPermission.getRoleId().toString());
         });
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority(sysPermissions.toString()));
@@ -95,10 +104,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         if (!verify) {
             int currNum = user.getLoginErrCnt();
             if (currNum == 2) {
-                long time = 1 * 60 * 1000;
                 user.setUserStatus("01");
                 user.setLoginErrCnt(0);
-                user.setLoginUnlockDatetime(new Date(new Date().getTime() + time));
+                user.setLoginUnlockDatetime(new Date(new Date().getTime() + accountLockMillis));
+                userMapper.updateById(user);
+                throw new LockedException("Account lock:" + user.getLoginUnlockDatetime());
             } else {
                 user.setLoginErrCnt(currNum + 1);
             }

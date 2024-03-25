@@ -1,22 +1,25 @@
 package jp.co.dir.falcon.online.auth.web.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.sql.Timestamp;
+import java.io.Serializable;
 
 @Data
 @Accessors(chain = true)//チェーン; アクセサー。 このアノテーションは、ゲッター メソッドとセッター メソッドの形式を制御できます。
-@TableName("user_roles")
-public class UserRoles {
-    @TableId(value = "USER_ID")
-    private Integer userId;
+@TableName("permissions")
+public class Permissions implements Serializable {
+    @TableId(value = "function_id", type = IdType.ASSIGN_ID)
+    private String functionId;
 
-    private Integer roleId;
+    private String permissionKbn;
 
-    private Timestamp createdDatetime;
+    private String permissionName;
 
-    private String createdBy;
+    private String method;
+
+    private String endpoint;
 }

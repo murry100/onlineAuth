@@ -13,10 +13,159 @@ CREATE TABLE PERMISSIONS (
 CREATE INDEX IDX_PERMISSIONS_PERMISSION_KBN ON PERMISSIONS (PERMISSION_KBN);
 
 
-INSERT INTO ROLES (
-    ID,
-    NAME
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
 ) VALUES (
+            'W001',
+            1,
+            '検索',
+            'GET',
+            '/search'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W001',
+             2,
+             'Download',
+             'GET',
+             '/download'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W001',
+             3,
+             '更新',
+             'POST',
+             '/update'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W002',
              1,
-             'sys:queryUser'
+             '検索',
+             'GET',
+             '/search'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W002',
+             2,
+             'Download',
+             'GET',
+             '/download'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W002',
+             3,
+             '更新',
+             'POST',
+             '/update'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W003',
+             1,
+             '検索',
+             'GET',
+             '/search'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W003',
+             2,
+             'Download',
+             'GET',
+             '/download'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W003',
+             3,
+             '更新',
+             'POST',
+             '/update'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W004',
+             1,
+             '検索',
+             'GET',
+             '/search'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W004',
+             2,
+             'Download',
+             'GET',
+             '/download'
+         );
+INSERT INTO PERMISSIONS (
+    FUNCTION_ID,
+    PERMISSION_KBN,
+    PERMISSION_NAME,
+    METHOD,
+    ENDPOINT
+) VALUES (
+             'W004',
+             3,
+             '更新',
+             'POST',
+             '/update'
          );

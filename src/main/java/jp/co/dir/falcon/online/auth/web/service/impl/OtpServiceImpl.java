@@ -9,7 +9,7 @@ import jp.co.dir.falcon.online.auth.common.api.ApiResult;
 import jp.co.dir.falcon.online.auth.common.utils.JwtUtils;
 import jp.co.dir.falcon.online.auth.common.utils.RedisUtil;
 import jp.co.dir.falcon.online.auth.security.entity.LogUser;
-import jp.co.dir.falcon.online.auth.web.entity.Roles;
+import jp.co.dir.falcon.online.auth.web.entity.RolePermissions;
 import jp.co.dir.falcon.online.auth.web.entity.Users;
 import jp.co.dir.falcon.online.auth.web.mapper.SysPermissionMapper;
 import jp.co.dir.falcon.online.auth.web.mapper.SysUserMapper;
@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class OtpServiceImpl implements OtpService {
@@ -55,6 +56,9 @@ public class OtpServiceImpl implements OtpService {
     private final SecureRandom secureRandom = new SecureRandom();
 
     public String generateOTP(String phoneNumber) {
+        if(redisUtil.hasKey(phoneNumber)){
+            return "";
+        }
         String otp = String.valueOf(100000 + secureRandom.nextInt(900000)); // 6桁のOTP世代
         redisUtil.set(phoneNumber, otp, 60); // Redisは1つのパーティションに保存します
         sendOtpViaSms(phoneNumber, otp); // SMS OTP 配信
@@ -65,34 +69,32 @@ public class OtpServiceImpl implements OtpService {
         // SMS配信装置。 サービスプロバイダーのAPIを利用する
     }
 
-    public ApiResult validateOtp(String phoneNumber, String inputOtp, ServerWebExchange exchange) {
-        String storedOtp = (String) redisUtil.get(phoneNumber);
+    public ApiResult validateOtp(String inputOtp, ServerWebExchange exchange) {
+        String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        String token = authorization.substring(7);
+        DecodedJWT tokenInfo = JwtUtils.verifyToken(token);
+        String userId = tokenInfo.getClaim("user_id").asString();
+        //ユーザー名に基づいてユーザーをクエリする
+        Users user = userMapper.selectOne(new QueryWrapper<Users>().eq("id", Integer.parseInt(userId)));
+        if (user == null) {
+            throw new RuntimeException("ユーザーは存在しません");
+        }
+        String storedOtp = (String) redisUtil.get(user.getPhoneNumber());
         if (storedOtp != null && storedOtp.equals(inputOtp)) {
-            String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
-            String token = authorization.substring(7);
-            DecodedJWT tokenInfo = JwtUtils.verifyToken(token);
-            String userId = tokenInfo.getClaim("user_id").asString();
-
-            //ユーザー名に基づいてユーザーをクエリする
-            Users user = userMapper.selectOne(new QueryWrapper<Users>().eq("id", Integer.parseInt(userId)));
-            if (user == null) {
-                throw new RuntimeException("ユーザーは存在しません");
-            }
-
-            List<String> permissionsList = new ArrayList<>();
+            Set<String> permissionsSet = new HashSet<>();
+            List<RolePermissions> sysPermissions = new ArrayList<>();
 
             if (user != null) {
                 //このユーザーが所有する権限を取得します
-                List<Roles> sysPermissions = sysPermissionMapper.selectPermissionList(user.getUserId());
+                sysPermissions = sysPermissionMapper.selectPermissionList(user.getUserId());
 
                 // ユーザー権限の宣言
                 sysPermissions.forEach(sysPermission -> {
-                    permissionsList.add(sysPermission.getName());
-
+                    permissionsSet.add(sysPermission.getRoleId().toString());
                 });
             }
 
-            LogUser logUser = new LogUser(user, permissionsList);
+            LogUser logUser = new LogUser(user, permissionsSet.stream().toList());
 
             Map<String, String> payloadMap = new HashMap<>();
             Gson gson = new Gson();
@@ -101,17 +103,18 @@ public class OtpServiceImpl implements OtpService {
             payloadMap.put("auth", logUser.getPermissions().stream().reduce("", (a, b) -> a.isEmpty() ? b : a + " " + b));
             String jwt = JwtUtils.generateToken(payloadMap);
 
-            payloadMap.clear();
+            Map<String, Object> payloadResMap = new HashMap<>();
             redisUtil.set(jwt, logUser, tokenAmount); // RedisにJWTを20分間保存
-            payloadMap.put("id_token", jwt);
+            payloadResMap.put("id_token", jwt);
 
             Date updateDate = user.getPasswordUpdatedDatetime();
             String repFlg = PasswordExpirationCheck(updateDate.toString(), otpAmount);
-            payloadMap.put("repFlg", repFlg);
+            payloadResMap.put("repFlg", repFlg);
+            payloadResMap.put("permissions", sysPermissions);
 
-            return ApiResult.success(payloadMap);
+            return ApiResult.success(payloadResMap);
         }
-        return ApiResult.error(ApiCode.NOT_FOUND.getCode(), "認証コードの有効期限またはエラー");
+        return ApiResult.error(ApiCode.SYSTEM_ERROR.getCode(), "認証コードの有効期限またはエラー");
     }
 
     private String PasswordExpirationCheck(String lastUpdated, long passwordValidityDays) {

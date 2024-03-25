@@ -94,14 +94,6 @@ public class JwtUtils {
         DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC256(secretKey)).build().verify(token);
         return decodedJWT;
     }
-
-    /**
-     * トークン情報の取得方法
-     */
-    /*public static Map<String, Claim> getTokenInfo(String token) {
-
-        return JWT.require(Algorithm.HMAC256(secretKey)).build().verify(token).getClaims();
-    }*/
 }
 
 

@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
 
 spring:
   profiles:
@@ -21,6 +21,7 @@ spring:
     testOnBorrow: false
     testOnReturn: false
     poolPreparedStatements: true
+    accountLockMillis: 60000
 
   data:
     redis:
@@ -31,24 +32,26 @@ spring:
       # Otp is valid 1 minute
       otp-validity-in-seconds: 60
 
-
-
   main:
     web-application-type: reactive
+
+  devtools:
+    livereload:
+      enabled: false
+  security:
+    user:
+      name: admin
+      password: admin123
+
 logging:
   level:
     root: info
     org:
       springframework:
-        security: DEBUG
-
-
-Jwt:
-  secretKey: sdsdsd23232323
-  optSecret: optopt123123
-  tokenSecret: tokentoken123123
+        security: error
 
 security:
+  debug: true
   authentication:
     jwt:
       # This token must be encoded using Base64 and be at least 256 bits long (you can type `openssl rand -base64 64` on your command line to generate a 512 bits one)
@@ -56,5 +59,16 @@ security:
       # Token is valid 20 minute
       token-validity-in-seconds: 1200
       token-validity-in-seconds-for-remember-me: 2592000
+  whileList: /auth/ver1/login/authenticate,/auth/ver1/logOut,/auth/ver1/login/mfa,/testPreAuthorize/**,/test/**,/auth/ver1/otp/**
 
-
+#  cloud:
+#    gateway:
+#      routes:
+#        - id: service1
+#          uri: http://localhost:8081
+#          predicates:
+#            - Path=/service1/**
+#        - id: service2
+#          uri: http://localhost:8082
+#          predicates:
+#            - Path=/service2/**

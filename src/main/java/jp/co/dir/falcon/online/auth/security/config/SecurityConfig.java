@@ -2,7 +2,9 @@ package jp.co.dir.falcon.online.auth.security.config;
 
 import jp.co.dir.falcon.online.auth.common.utils.RedisUtil;
 import jp.co.dir.falcon.online.auth.security.filter.JwtAuthenticationWebFilter;
+import jp.co.dir.falcon.online.auth.web.service.impl.OtpServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
@@ -16,6 +18,11 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.util.StringUtils;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -24,17 +31,17 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableReactiveMethodSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig{
-    private static final String[] AUTH_WHITELIST = {
-            "/auth/ver1/login/authenticate",
-            "/auth/ver1/logOut",
-            "/auth/ver1/login/mfa",
-            "/testPreAuthorize/**",
-            "/test/**",
-            "/**.html",
-            "/js/**",
-            "/css/**",
-            "/img/**"
-    };
+
+    @Value("${security.whileList}")
+    private String whileListString;
+
+    public String[] getWhiteList() {
+        if (StringUtils.hasText(whileListString)) {
+            return whileListString.split("\\s*,\\s*");
+        } else {
+            return new String[0];
+        }
+    }
 
     @Autowired
     private RedisUtil redisUtil;
@@ -58,7 +65,7 @@ public class SecurityConfig{
         http.csrf(csrf -> csrf.disable())// csrf認証をオフにする（クロスステーション要求による偽造攻撃を防ぐ）私たちのリソースはすべてSpringSecurityによって保護されるため、クロスドメインアクセスを実行するにはSpringSecurityにクロスドメインアクセスを実行させる必要があります
                 //开启权限拦截
                 .authorizeExchange( auth -> auth
-                        .pathMatchers(AUTH_WHITELIST).permitAll()
+                        .pathMatchers(getWhiteList()).permitAll()
 //                        .pathMatchers("/sysUser/logOut").hasAuthority("admin")
                         .anyExchange().authenticated()
                 )

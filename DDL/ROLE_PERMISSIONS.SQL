@@ -18,6 +18,106 @@ INSERT INTO ROLE_PERMISSIONS (
     FUNCTION_ID,
     PERMISSION_KBN
 ) VALUES (
+            1,
+            'W001',
+            3
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
              1,
-             'admin'
+             'W002',
+             3
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             1,
+             'W003',
+             3
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             1,
+             'W004',
+             1
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             1,
+             'W004',
+             2
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             1,
+             'W004',
+             3
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             2,
+             'W001',
+             1
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             2,
+             'W001',
+             2
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             2,
+             'W002',
+             1
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             2,
+             'W002',
+             2
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             2,
+             'W003',
+             1
+         );
+INSERT INTO ROLE_PERMISSIONS (
+    ROLE_ID,
+    FUNCTION_ID,
+    PERMISSION_KBN
+) VALUES (
+             2,
+             'W003',
+             2
          );

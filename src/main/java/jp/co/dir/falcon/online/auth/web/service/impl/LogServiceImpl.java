@@ -12,11 +12,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ServerWebExchange;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class LogServiceImpl implements LogService {
@@ -58,16 +59,6 @@ public class LogServiceImpl implements LogService {
         payloadMap.clear();
 
         payloadMap.put("id_token", jwt);
-
-        //roleKey -> url
-        Map<String, Set> roleMap = new HashMap<>();
-        Set<String> adminSet = new HashSet<>();
-        adminSet.add("/auth/ver1/login/authenticate");
-        adminSet.add("/auth/ver1/logOut");
-        adminSet.add("/auth/ver1/login/mfa");
-        adminSet.add("/testPreAuthorize/hello");
-        roleMap.put("admin", adminSet);
-        redisUtil.set("Authorization", roleMap);
 
         return ApiResult.success(payloadMap);
     }

@@ -11,19 +11,19 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-//RedisConfig 配置类
+//RedisConfig クラスの構成
 @Configuration
 public class RedisConfig {
 
 
-    //解决redis可视化乱码问题，方便调试查找问题
+    //redis可視化文字化け問題を解決し、問題の調査を容易にする
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory);
 
         StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
 
-        redisTemplate.setKeySerializer(stringRedisSerializer); // key的序列化类型
+        redisTemplate.setKeySerializer(stringRedisSerializer); // keyの直列化タイプ
 
         Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
         ObjectMapper objectMapper = new ObjectMapper();
@@ -33,7 +33,7 @@ public class RedisConfig {
         jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
         jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
 
-        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer); // value的序列化类型
+        redisTemplate.setValueSerializer(jackson2JsonRedisSerializer); // valueの直列化タイプ
         redisTemplate.setHashKeySerializer(stringRedisSerializer);
         redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
 

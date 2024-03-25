@@ -3,7 +3,7 @@ package jp.co.dir.falcon.online.auth.security.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import jakarta.annotation.Resource;
 import jp.co.dir.falcon.online.auth.security.entity.LogUser;
-import jp.co.dir.falcon.online.auth.web.entity.Roles;
+import jp.co.dir.falcon.online.auth.web.entity.RolePermissions;
 import jp.co.dir.falcon.online.auth.web.entity.Users;
 import jp.co.dir.falcon.online.auth.web.mapper.SysPermissionMapper;
 import jp.co.dir.falcon.online.auth.web.mapper.SysUserMapper;
@@ -47,11 +47,11 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
         if (user != null) {
             //このユーザーが所有する権限を取得します
-            List<Roles> sysPermissions = sysPermissionMapper.selectPermissionList(user.getUserId());
+            List<RolePermissions> sysPermissions = sysPermissionMapper.selectPermissionList(user.getUserId());
 
             // ユーザー権限の宣言
             sysPermissions.forEach(sysPermission -> {
-                permissionsList.add(sysPermission.getName());
+                permissionsList.add(sysPermission.getRoleId().toString());
 
             });
         }

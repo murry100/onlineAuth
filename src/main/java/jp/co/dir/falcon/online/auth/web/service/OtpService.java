@@ -6,5 +6,5 @@ import org.springframework.web.server.ServerWebExchange;
 public interface OtpService {
     String generateOTP(String phoneNumber);
 
-    ApiResult validateOtp(String phoneNumber, String inputOtp, ServerWebExchange exchange);
+    ApiResult validateOtp(String inputOtp, ServerWebExchange exchange);
 }

@@ -63,26 +63,22 @@ public class LogUser implements UserDetails, Serializable {
 
     @Override
     public boolean isAccountNonExpired() {
-//        return user.getAccountNotExpired();
         return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-//        return user.getAccountNotLocked();
         return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-//        return user.getCredentialsNotExpired();
         return true;
     }
 
     @Override
     public boolean isEnabled() {
         return true;
-//        return user.getEnabled();
     }
 }
 
